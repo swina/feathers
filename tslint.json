@@ -13,6 +13,7 @@
       "packages/commons/lib/**",
       "packages/transport-commons/lib/**",
       "packages/tests/lib/**",
+      "packages/koa/lib/**",
       "**/node_modules/**",
       "**/coverage/**",
       "**/dist/**",

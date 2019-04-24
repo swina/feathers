@@ -1,7 +1,7 @@
 // @ts-ignore
 import Router from 'radix-router';
 import { stripSlashes } from '@feathersjs/commons';
-import { Application } from '@feathersjs/feathers';
+import { Application, Service } from '@feathersjs/feathers';
 
 export const ROUTER = Symbol('@feathersjs/transport-commons/router');
 
@@ -9,6 +9,12 @@ declare module '@feathersjs/feathers' {
   interface Application<ServiceTypes> {
     lookup (path: string): { [key: string]: string };
   }
+}
+
+export type LookupResult = {
+  path: string,
+  params: { [key: string]: any },
+  service: Service<any>
 }
 
 export const routing = () => (app: Application) => {
@@ -20,7 +26,7 @@ export const routing = () => (app: Application) => {
 
   Object.assign(app, {
     [ROUTER]: router,
-    lookup (path: string): { [key: string]: string } {
+    lookup (path: string): LookupResult {
       if (!path) {
         return null;
       }
