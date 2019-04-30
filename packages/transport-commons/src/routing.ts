@@ -5,16 +5,16 @@ import { Application, Service } from '@feathersjs/feathers';
 
 export const ROUTER = Symbol('@feathersjs/transport-commons/router');
 
-declare module '@feathersjs/feathers' {
-  interface Application<ServiceTypes> {
-    lookup (path: string): { [key: string]: string };
-  }
+export interface LookupResult {
+  path: string;
+  params: { [key: string]: any };
+  service: Service<any>;
 }
 
-export type LookupResult = {
-  path: string,
-  params: { [key: string]: any },
-  service: Service<any>
+declare module '@feathersjs/feathers' {
+  interface Application<ServiceTypes> {
+    lookup (path: string): LookupResult;
+  }
 }
 
 export const routing = () => (app: Application) => {

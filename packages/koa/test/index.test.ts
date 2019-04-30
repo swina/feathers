@@ -1,8 +1,39 @@
 import { strict as assert } from 'assert';
-import feathers, { Application } from '@feathersjs/feathers';
-import { koa } from '../src';
+import feathers from '@feathersjs/feathers';
+import { Service } from '@feathersjs/tests/lib/fixture';
+import { crud } from '@feathersjs/tests/lib/crud';
+import { koa, rest, Application, bodyParser } from '../src';
+import { Server } from 'http';
+import axios from 'axios';
 
 describe('@feathersjs/koa', () => {
+  let app: Application;
+  let server: Server;
+
+  before(async () => {
+    app = koa(feathers());
+    app.use(bodyParser());
+    app.use(rest());
+    app.use('/', Service);
+    app.use('todo', Service);
+    app.use(ctx => {
+      if (ctx.request.path === '/middleware') {
+        ctx.body = {
+          feathers: ctx.feathers,
+          message: 'Hello from middleware'
+        };
+      }
+    });
+
+    server = app.listen(8465);
+
+    await new Promise(resolve =>
+      server.once('listening', () => resolve())
+    );
+  });
+
+  after(() => server.close());
+
   it('throws an error when initialized with invalid application', () => {
     try {
       koa({} as Application);
@@ -12,30 +43,22 @@ describe('@feathersjs/koa', () => {
     }
   });
 
-  it('initializes as a Koa and Feathers application', async () => {
-    const app = koa(feathers());
-    let isSetup = false;
+  it('starts as a Koa and Feathers application', async () => {
+    const { data } = await axios.get('http://localhost:8465/middleware');
+    const todo = await app.service('todo').get('dishes');
 
-    app.use('/myservice', {
-      async get (id: string) {
-        return { id };
-      },
-
-      setup() {
-        isSetup = true;
+    assert.deepEqual(data, {
+      message: 'Hello from middleware',
+      feathers: {
+        provider: 'rest'
       }
     });
-
-    app.use(ctx => {
-      ctx.body = {
-        message: 'Hello from middleware'
-      };
+    assert.deepEqual(todo, {
+      id: 'dishes',
+      description: 'You have to do dishes!'
     });
-
-    await new Promise(resolve => {
-      app.listen(7865).once('listening', () => resolve());
-    });
-
-    assert.ok(isSetup);
   });
+
+  crud('Services', 'todo', 8465);
+  // crud('Root service', '/', 8465);
 });
