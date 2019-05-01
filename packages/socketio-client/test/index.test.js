@@ -1,7 +1,7 @@
 const assert = require('assert');
 const feathers = require('@feathersjs/feathers');
 const io = require('socket.io-client');
-const baseTests = require('@feathersjs/tests/lib//client');
+const baseTests = require('@feathersjs/tests/lib/client');
 
 const server = require('./server');
 const socketio = require('../lib');
@@ -66,9 +66,11 @@ describe('@feathersjs/socketio-client', () => {
   });
 
   it('return 404 for non-existent service', () => {
-    return app.service('not-me').create({}).catch(e =>
-      assert.strictEqual(e.message, 'Service \'not-me\' not found')
-    );
+    return app.service('not/me').create({})
+      .then(() => assert.fail('Should never get here'))
+      .catch(e =>
+        assert.strictEqual(e.message, 'Service \'not/me\' not found')
+      );
   });
 
   baseTests(app, 'todos');

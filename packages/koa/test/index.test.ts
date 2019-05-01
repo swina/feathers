@@ -60,5 +60,5 @@ describe('@feathersjs/koa', () => {
   });
 
   crud('Services', 'todo', 8465);
-  // crud('Root service', '/', 8465);
+  crud('Root service', '/', 8465);
 });

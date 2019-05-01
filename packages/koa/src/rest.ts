@@ -1,4 +1,4 @@
-import { FeathersKoaContext } from './index';
+import { FeathersKoaContext } from './utils';
 
 export const methodMap: { [key: string]: any } = {
   POST: 'create',
@@ -7,12 +7,31 @@ export const methodMap: { [key: string]: any } = {
   DELETE: 'remove'
 };
 
-export const getMethod = (httpMethod: string, id: any)=> {
+export const getMethod = (httpMethod: string, id: any): string|null => {
   if (httpMethod === 'GET') {
     return id === null ? 'find' : 'get';
   }
 
-  return methodMap[httpMethod];
+  return methodMap[httpMethod] || null;
+};
+
+export const getArguments = (method: string, id: any, data: any, params: any) => {
+  const args = [];
+
+  // id
+  if (method !== 'create' && method !== 'find') {
+    args.push(id);
+  }
+
+  // data
+  if (method === 'create' || method === 'update' || method === 'patch') {
+    args.push(data);
+  }
+
+  // params
+  args.push(params);
+
+  return args;
 };
 
 export const rest = () => async (ctx: FeathersKoaContext, next: () => Promise<any>) => {
@@ -22,27 +41,13 @@ export const rest = () => async (ctx: FeathersKoaContext, next: () => Promise<an
 
   if (lookup !== null) {
     const { service, params: lookupParams = {} } = lookup;
-    const { __id = null, ...route } = lookupParams;
-    const method = getMethod(httpMethod, __id);
-    const args = [];
-
-    // id
-    if (method !== 'create' && method !== 'find') {
-      args.push(__id);
-    }
-
-    // data
-    if (method === 'create' || method === 'update' || method === 'patch') {
-      args.push(request.body);
-    }
-
-    // params
-    args.push({
+    const { __id: id = null, ...route } = lookupParams;
+    const method = getMethod(httpMethod, id);
+    const args = getArguments(method, id, request.body, {
       ...ctx.feathers,
       query,
       route
     });
-
     const result = await service[method](...args);
 
     ctx.response.status = method === 'create' ? 201 : 200;

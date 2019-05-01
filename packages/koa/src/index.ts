@@ -7,14 +7,11 @@ import { routing } from '@feathersjs/transport-commons';
 const debug = Debug('@feathersjs/koa');
 
 export type Application<T = any> = Koa & FeathersApplication<T>;
-export type FeathersKoaContext<T = any> = Koa.Context & {
-  app: Application<T>;
-};
 
 export { rest } from './rest';
 export { Koa, bodyParser };
 
-export function koa (feathersApp: FeathersApplication): Application<any> {
+export function koa (feathersApp?: FeathersApplication): Application<any> {
   const app = new Koa();
 
   if (!feathersApp) {

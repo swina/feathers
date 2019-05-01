@@ -27,7 +27,7 @@ export const routing = () => (app: Application) => {
   Object.assign(app, {
     [ROUTER]: router,
     lookup (path: string): LookupResult {
-      if (!path) {
+      if (typeof path !== 'string') {
         return null;
       }
 
@@ -37,11 +37,13 @@ export const routing = () => (app: Application) => {
 
   // Add a mixin that registers a service on the router
   app.mixins.push((service, path) => {
+    const idRoute = ':__id';
+
     // @ts-ignore
     app[ROUTER].insert({ path, service });
     // @ts-ignore
     app[ROUTER].insert({
-      path: `${path}/:__id`,
+      path: path === '/' ? idRoute : `${path}/${idRoute}`,
       service
     });
   });
